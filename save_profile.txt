@@ -1,0 +1,57 @@
+<?php
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+error_reporting(0);
+
+$host = "localhost";
+$user = "root";
+$pass = "";
+$dbname = "part_time_db";
+
+$conn = new mysqli($host, $user, $pass, $dbname);
+if ($conn->connect_error) {
+    echo json_encode(["success" => false, "message" => "Koneksi database gagal"]);
+    exit;
+}
+
+$email = $_POST['email'] ?? '';
+$name = $_POST['name'] ?? '';
+$address = $_POST['address'] ?? '';
+$phone = $_POST['phone'] ?? '';
+$campus = $_POST['campus'] ?? '';
+$major = $_POST['major'] ?? '';
+$semester = $_POST['semester'] ?? '';
+
+if (empty($email) || empty($name)) {
+    echo json_encode(["success" => false, "message" => "Data tidak lengkap"]);
+    exit;
+}
+
+// cek apakah profil sudah ada
+$check = $conn->prepare("SELECT id FROM profiles WHERE email = ?");
+$check->bind_param("s", $email);
+$check->execute();
+$result = $check->get_result();
+
+if ($result->num_rows > 0) {
+    // update
+    $stmt = $conn->prepare("UPDATE profiles SET name=?, address=?, phone=?, campus=?, major=?, semester=? WHERE email=?");
+    $stmt->bind_param("sssssss", $name, $address, $phone, $campus, $major, $semester, $email);
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Profil berhasil diperbarui"]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Gagal memperbarui profil"]);
+    }
+} else {
+    // insert
+    $stmt = $conn->prepare("INSERT INTO profiles (name, address, phone, email, campus, major, semester) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssss", $name, $address, $phone, $email, $campus, $major, $semester);
+    if ($stmt->execute()) {
+        echo json_encode(["success" => true, "message" => "Profil berhasil disimpan"]);
+    } else {
+        echo json_encode(["success" => false, "message" => "Gagal menyimpan profil"]);
+    }
+}
+
+$conn->close();
+?>

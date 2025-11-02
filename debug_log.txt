@@ -1,0 +1,6 @@
+{
+    "email_pelamar": "2@gmail.com",
+    "email_provider": "3@gmail.com",
+    "job_id": "9",
+    "status": "menunggu"
+}
